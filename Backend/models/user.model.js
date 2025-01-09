@@ -1,12 +1,17 @@
 import mongoose from "mongoose";
-const userSchema=new mongoose.method({
+const userSchema=new mongoose.Schema({
     name:{
         type:String,
         required:true,
     },
+    username:
+     { type: String,
+         required: true, 
+         unique: true },
     email:{
         type:String,
         required:true,
+        unique:true
     },
     password:{
         type:String,
@@ -37,7 +42,8 @@ experience:[
     {
         title:String,
         company:String,
-        startData:Date,
+        startDate:Date,
+        endDate:Date,
         description:String 
     }
   
@@ -45,13 +51,22 @@ experience:[
 education:[
     {
         school:String,
-        fieldOfStudy:""
+        fieldOfStudy:String,
+        startYear:Number,
+        endYear:Number
+    }
+],
+connecton:[
+    {
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"User"
     }
 ]
 },
-   {timeStamps:true} 
+   {timestamps:true} 
 )
-export const User=mongoose.model("User",userSchema
+ const User=mongoose.model("User",userSchema
 )
+export default User
 
 

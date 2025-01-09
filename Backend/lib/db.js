@@ -7,7 +7,9 @@ try {
         
 } catch (error)
  {
-    console.log("Error in connecting to mongoDB",error)
+    console.log("Error in connecting to mongoDB",error.message
+      
+    )
     process.exit(1)
 }
 }
