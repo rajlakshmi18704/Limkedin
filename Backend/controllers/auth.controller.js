@@ -2,6 +2,7 @@ import User from "../models/user.model.js"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken"
 import {sendWelcomeEmail } from "../emails/emailHandler.js"
+// import protectRoute from "../middleware/auth.middleware.js"
 export const signup= async(req,res)=>{
    
     try {
@@ -68,4 +69,16 @@ export const logout=(req,res)=>{
     res.json({
         message:"Logged out successfully"
     })
+}
+export const getCurrentUser=async(req,res)=>{
+try {
+    res.json(req.user)
+   
+
+} catch (error) {
+    console.log("Error in getCurrentUser",error)
+    res.status(401).json({
+        message:"Server error"
+    })
+}
 }
