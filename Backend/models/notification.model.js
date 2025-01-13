@@ -27,5 +27,5 @@ read:{
 {timestamps:true}
 
 )
-const Notifications=notificationSchema.model("Notifications",notificationSchema)
+const Notifications=mongoose.model("Notification",notificationSchema)
 export default Notifications;

@@ -1,6 +1,8 @@
 import cloudinary from "../lib/cloudinary.js";
 import Post from "../models/post.model.js";
 import Notification from "../models/notification.model.js";
+import { sendCommentNotificationEmail } from "../emails/emailHandler.js";
+import Notifications from "../models/notification.model.js";
 export const getFeedPosts=async(req,res)=>{
    try {
     const posts=await Post.find({author:{$in:req.user.connections}})
@@ -89,7 +91,7 @@ export const createComment=async(req,res)=>{
             await newNotification.save()
             try {
                 const postUrl=process.env.CLIENT_URL+"/post/"+postId
-         await sendCommentNotification(post.author.email,post.author.name,req.user.name,postUrl,content)
+         await sendCommentNotificationEmail(post.author.email,post.author.name,req.user.name,postUrl,content)
             } catch (error) {
                 
             }
@@ -100,5 +102,28 @@ export const createComment=async(req,res)=>{
 catch(error){
     console.log("Error in createComment controller",error)
     res.status(500).json({message:"Server error"})
+}
+}
+export const likePost=async(req,res)=>{
+    try {
+        const postId=req.params.id;
+        const userId=req.user._id;
+        const post=await Post.findById(postId); 
+        if(post.likes.includes(userId)){
+post.likes=post.likes.filter(id=>id.toString()!=userId.toString())
+        }
+        else{
+            post.likes.push(userId)
+            if(post.author.toString()!==userId.toString()){
+              const newNotification=new Notifications({
+                recipient:post.author,
+                type:"like",
+                relatedUser:userId,
+                relatedPost:postId,
+              })  
+            }
+    } catch (error) {
+        
+    
 }
 }
