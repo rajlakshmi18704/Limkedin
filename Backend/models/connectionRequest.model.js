@@ -1,5 +1,5 @@
-import { sender } from "../lib/mailTrap";
-
+import { sender } from "../lib/mailTrap.js";
+import mongoose from "mongoose";
 const connectionRequestSchema=new mongoose.Schema({
     sender:{type:mongoose.Schema.Types.ObjectId,ref:"User",required:true},
     recipient:{type:mongoose.Schema.Types.ObjectId,ref:"User",required:true},

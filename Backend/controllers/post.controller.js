@@ -122,8 +122,10 @@ post.likes=post.likes.filter(id=>id.toString()!=userId.toString())
                 relatedPost:postId,
               })  
             }
-    } catch (error) {
-        
+    }
+ } 
+ catch (error) {
+        console.log("object",error)
     
 }
 }
