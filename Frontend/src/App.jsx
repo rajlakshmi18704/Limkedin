@@ -3,12 +3,29 @@ import Layout from './components/layout/Layout'
 import HomePage from './pages/auth/HomePage'
 import LoginPage from './pages/auth/LoginPage'
 import SignUpPage from './pages/auth/SignUpPage'
+import { useQuery } from "@tanstack/react-query";
 import './App.css'
 
 import { Route, Routes } from 'react-router-dom'
 
+import toast, { Toaster } from "react-hot-toast";
 function App() {
-  const [count, setCount] = useState(0)
+  const { data: authUser, isLoading } = useQuery({
+		queryKey: ["authUser"],
+		queryFn: async () => {
+			try {
+				const res = await axiosInstance.get("/auth/me");
+				return res.data;
+			} catch (err) {
+				if (err.response && err.response.status === 401) {
+					return null;
+				}
+				toast.error(err.response.data.message || "Something went wrong");
+			}
+		},
+	});
+  console.log("authuser",authUser)
+
 
   return (
     <>
@@ -19,6 +36,7 @@ function App() {
   <Route path="/login" element={<LoginPage/>}/>
 
 </Routes>
+<Toaster/>
      </Layout>
      
     </>
