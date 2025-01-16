@@ -11,7 +11,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 
 import toast, { Toaster } from "react-hot-toast";
 function App() {
-  const { data: authUser, isLoading } = useQuery({
+	const { data: authUser, isLoading } = useQuery({
 		queryKey: ["authUser"],
 		queryFn: async () => {
 			try {
@@ -25,8 +25,8 @@ function App() {
 			}
 		},
 	});
-  if (isLoading) return null;
 
+	if (isLoading) return null;
 
 
   return (
