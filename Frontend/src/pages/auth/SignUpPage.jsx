@@ -2,7 +2,7 @@ import React from 'react'
 import SignUpForm from '../../components/auth/SignUpForm'
 import logo from "../../assets/logo.svg"
 import { Link } from 'react-router-dom'
-const SignUpPage = () => {
+const SignUpPage = () => {	
   return (
 	
 		<div className='min-h-screen flex flex-col justify-center items-center py-12 sm:px-6 lg:px-8'>
