@@ -1,34 +1,25 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
 import { axiosInstance } from "../lib/axios";
-import { toast } from "react-hot-toast";
+import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
+import { Check, Clock, UserCheck, UserPlus, X } from "lucide-react";
 
-import { Camera, Clock, MapPin, UserCheck, UserPlus, X } from "lucide-react";
-
-const ProfileHeader = ({ userData, onSave, isOwnProfile }) => {
-	const [isEditing, setIsEditing] = useState(false);
-	const [editedData, setEditedData] = useState({});
+const RecommendedUser = ({ user }) => {
 	const queryClient = useQueryClient();
 
-	const { data: authUser } = useQuery({ queryKey: ["authUser"] });
-
-	const { data: connectionStatus, refetch: refetchConnectionStatus } = useQuery({
-		queryKey: ["connectionStatus", userData._id],
-		queryFn: () => axiosInstance.get(`/connections/status/${userData._id}`),
-		enabled: !isOwnProfile,
+	const { data: connectionStatus, isLoading } = useQuery({
+		queryKey: ["connectionStatus", user._id],
+		queryFn: () => axiosInstance.get(`/connections/status/${user._id}`),
 	});
-
-	const isConnected = userData.connections.some((connection) => connection === authUser._id);
 
 	const { mutate: sendConnectionRequest } = useMutation({
 		mutationFn: (userId) => axiosInstance.post(`/connections/request/${userId}`),
 		onSuccess: () => {
-			toast.success("Connection request sent");
-			refetchConnectionStatus();
-			queryClient.invalidateQueries(["connectionRequests"]);
+			toast.success("Connection request sent successfully");
+			queryClient.invalidateQueries({ queryKey: ["connectionStatus", user._id] });
 		},
 		onError: (error) => {
-			toast.error(error.response?.data?.message || "An error occurred");
+			toast.error(error.response?.data?.error || "An error occurred");
 		},
 	});
 
@@ -36,11 +27,10 @@ const ProfileHeader = ({ userData, onSave, isOwnProfile }) => {
 		mutationFn: (requestId) => axiosInstance.put(`/connections/accept/${requestId}`),
 		onSuccess: () => {
 			toast.success("Connection request accepted");
-			refetchConnectionStatus();
-			queryClient.invalidateQueries(["connectionRequests"]);
+			queryClient.invalidateQueries({ queryKey: ["connectionStatus", user._id] });
 		},
 		onError: (error) => {
-			toast.error(error.response?.data?.message || "An error occurred");
+			toast.error(error.response?.data?.error || "An error occurred");
 		},
 	});
 
@@ -48,211 +38,94 @@ const ProfileHeader = ({ userData, onSave, isOwnProfile }) => {
 		mutationFn: (requestId) => axiosInstance.put(`/connections/reject/${requestId}`),
 		onSuccess: () => {
 			toast.success("Connection request rejected");
-			refetchConnectionStatus();
-			queryClient.invalidateQueries(["connectionRequests"]);
+			queryClient.invalidateQueries({ queryKey: ["connectionStatus", user._id] });
 		},
 		onError: (error) => {
-			toast.error(error.response?.data?.message || "An error occurred");
+			toast.error(error.response?.data?.error || "An error occurred");
 		},
 	});
 
-	const { mutate: removeConnection } = useMutation({
-		mutationFn: (userId) => axiosInstance.delete(`/connections/${userId}`),
-		onSuccess: () => {
-			toast.success("Connection removed");
-			refetchConnectionStatus();
-			queryClient.invalidateQueries(["connectionRequests"]);
-		},
-		onError: (error) => {
-			toast.error(error.response?.data?.message || "An error occurred");
-		},
-	});
+	const renderButton = () => {
+		if (isLoading) {
+			return (
+				<button className='px-3 py-1 rounded-full text-sm bg-gray-200 text-gray-500' disabled>
+					Loading...
+				</button>
+			);
+		}
 
-	const getConnectionStatus = useMemo(() => {
-		if (isConnected) return "connected";
-		if (!isConnected) return "not_connected";
-		return connectionStatus?.data?.status;
-	}, [isConnected, connectionStatus]);
-
-	const renderConnectionButton = () => {
-		const baseClass = "text-white py-2 px-4 rounded-full transition duration-300 flex items-center justify-center";
-		switch (getConnectionStatus) {
-			case "connected":
-				return (
-					<div className='flex gap-2 justify-center'>
-						<div className={`${baseClass} bg-green-500 hover:bg-green-600`}>
-							<UserCheck size={20} className='mr-2' />
-							Connected
-						</div>
-						<button
-							className={`${baseClass} bg-red-500 hover:bg-red-600 text-sm`}
-							onClick={() => removeConnection(userData._id)}
-						>
-							<X size={20} className='mr-2' />
-							Remove Connection
-						</button>
-					</div>
-				);
-
+		switch (connectionStatus?.data?.status) {
 			case "pending":
 				return (
-					<button className={`${baseClass} bg-yellow-500 hover:bg-yellow-600`}>
-						<Clock size={20} className='mr-2' />
+					<button
+						className='px-3 py-1 rounded-full text-sm bg-yellow-500 text-white flex items-center'
+						disabled
+					>
+						<Clock size={16} className='mr-1' />
 						Pending
 					</button>
 				);
-
 			case "received":
 				return (
 					<div className='flex gap-2 justify-center'>
 						<button
 							onClick={() => acceptRequest(connectionStatus.data.requestId)}
-							className={`${baseClass} bg-green-500 hover:bg-green-600`}
+							className={`rounded-full p-1 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white`}
 						>
-							Accept
+							<Check size={16} />
 						</button>
 						<button
 							onClick={() => rejectRequest(connectionStatus.data.requestId)}
-							className={`${baseClass} bg-red-500 hover:bg-red-600`}
+							className={`rounded-full p-1 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white`}
 						>
-							Reject
+							<X size={16} />
 						</button>
 					</div>
+				);
+			case "connected":
+				return (
+					<button
+						className='px-3 py-1 rounded-full text-sm bg-green-500 text-white flex items-center'
+						disabled
+					>
+						<UserCheck size={16} className='mr-1' />
+						Connected
+					</button>
 				);
 			default:
 				return (
 					<button
-						onClick={() => sendConnectionRequest(userData._id)}
-						className='bg-primary hover:bg-primary-dark text-white py-2 px-4 rounded-full transition duration-300 flex items-center justify-center'
+						className='px-3 py-1 rounded-full text-sm border border-primary text-primary hover:bg-primary hover:text-white transition-colors duration-200 flex items-center'
+						onClick={handleConnect}
 					>
-						<UserPlus size={20} className='mr-2' />
+						<UserPlus size={16} className='mr-1' />
 						Connect
 					</button>
 				);
 		}
 	};
 
-	const handleImageChange = (event) => {
-		const file = event.target.files[0];
-		if (file) {
-			const reader = new FileReader();
-			reader.onloadend = () => {
-				setEditedData((prev) => ({ ...prev, [event.target.name]: reader.result }));
-			};
-			reader.readAsDataURL(file);
+	const handleConnect = () => {
+		if (connectionStatus?.data?.status === "not_connected") {
+			sendConnectionRequest(user._id);
 		}
 	};
 
-	const handleSave = () => {
-		onSave(editedData);
-		setIsEditing(false);
-	};
-
 	return (
-		<div className='bg-white shadow rounded-lg mb-6'>
-			<div
-				className='relative h-48 rounded-t-lg bg-cover bg-center'
-				style={{
-					backgroundImage: `url('${editedData.bannerImg || userData.bannerImg || "/banner.png"}')`,
-				}}
-			>
-				{isEditing && (
-					<label className='absolute top-2 right-2 bg-white p-2 rounded-full shadow cursor-pointer'>
-						<Camera size={20} />
-						<input
-							type='file'
-							className='hidden'
-							name='bannerImg'
-							onChange={handleImageChange}
-							accept='image/*'
-						/>
-					</label>
-				)}
-			</div>
-
-			<div className='p-4'>
-				<div className='relative -mt-20 mb-4'>
-					<img
-						className='w-32 h-32 rounded-full mx-auto object-cover'
-						src={editedData.profilePicture || userData.profilePicture || "/avatar.png"}
-						alt={userData.name}
-					/>
-
-					{isEditing && (
-						<label className='absolute bottom-0 right-1/2 transform translate-x-16 bg-white p-2 rounded-full shadow cursor-pointer'>
-							<Camera size={20} />
-							<input
-								type='file'
-								className='hidden'
-								name='profilePicture'
-								onChange={handleImageChange}
-								accept='image/*'
-							/>
-						</label>
-					)}
+		<div className='flex items-center justify-between mb-4'>
+			<Link to={`/profile/${user.username}`} className='flex items-center flex-grow'>
+				<img
+					src={user.profilePicture || "/avatar.png"}
+					alt={user.name}
+					className='w-12 h-12 rounded-full mr-3'
+				/>
+				<div>
+					<h3 className='font-semibold text-sm'>{user.name}</h3>
+					<p className='text-xs text-info'>{user.headline}</p>
 				</div>
-
-				<div className='text-center mb-4'>
-					{isEditing ? (
-						<input
-							type='text'
-							value={editedData.name ?? userData.name}
-							onChange={(e) => setEditedData({ ...editedData, name: e.target.value })}
-							className='text-2xl font-bold mb-2 text-center w-full'
-						/>
-					) : (
-						<h1 className='text-2xl font-bold mb-2'>{userData.name}</h1>
-					)}
-
-					{isEditing ? (
-						<input
-							type='text'
-							value={editedData.headline ?? userData.headline}
-							onChange={(e) => setEditedData({ ...editedData, headline: e.target.value })}
-							className='text-gray-600 text-center w-full'
-						/>
-					) : (
-						<p className='text-gray-600'>{userData.headline}</p>
-					)}
-
-					<div className='flex justify-center items-center mt-2'>
-						<MapPin size={16} className='text-gray-500 mr-1' />
-						{isEditing ? (
-							<input
-								type='text'
-								value={editedData.location ?? userData.location}
-								onChange={(e) => setEditedData({ ...editedData, location: e.target.value })}
-								className='text-gray-600 text-center'
-							/>
-						) : (
-							<span className='text-gray-600'>{userData.location}</span>
-						)}
-					</div>
-				</div>
-
-				{isOwnProfile ? (
-					isEditing ? (
-						<button
-							className='w-full bg-primary text-white py-2 px-4 rounded-full hover:bg-primary-dark
-							 transition duration-300'
-							onClick={handleSave}
-						>
-							Save Profile
-						</button>
-					) : (
-						<button
-							onClick={() => setIsEditing(true)}
-							className='w-full bg-primary text-white py-2 px-4 rounded-full hover:bg-primary-dark
-							 transition duration-300'
-						>
-							Edit Profile
-						</button>
-					)
-				) : (
-					<div className='flex justify-center'>{renderConnectionButton()}</div>
-				)}
-			</div>
+			</Link>
+			{renderButton()}
 		</div>
 	);
 };
-export default ProfileHeader;
+export default RecommendedUser;

@@ -1,7 +1,7 @@
 import Notifications from "../models/notification.model.js"
 export const getUserNotifications=async(req,res)=>{
     try {
-        const notifications=await Notification.find({recipient:req.user._id})
+        const notifications=await Notifications.find({recipient:req.user._id})
         .sort({createdAt:-1})
         .populate("relatedUser","name username profilePicture")
         .populate("relatedPost","contentImage ")
@@ -14,7 +14,7 @@ export const getUserNotifications=async(req,res)=>{
 export const markNotificationAsRead=async(req,res)=>{
     try {
         const notificationId=req.params.id
-        const notification=await Notification.findByIdAndUpdate(
+        const notification=await Notifications.findByIdAndUpdate(
             {_id:notificationId,recipient:req.user._id},
             {read:true},{new:true}
         );

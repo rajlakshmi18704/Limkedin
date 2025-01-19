@@ -56,7 +56,7 @@ education:[
         endYear:Number
     }
 ],
-connecton:[
+connections:[
     {
         type:mongoose.Schema.Types.ObjectId,
         ref:"User"

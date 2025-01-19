@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Home, UserPlus, Bell } from "lucide-react";
-
+import avataar from "../assets/avatar.png";
 export default function Sidebar({ user }) {
 	return (
 		<div className='bg-secondary rounded-lg shadow'>
@@ -13,7 +13,7 @@ export default function Sidebar({ user }) {
 				/>
 				<Link to={`/profile/${user.username}`}>
 					<img
-						src={user.profilePicture || "/avatar.png"}
+						src={user.profilePicture || avataar}
 						alt={user.name}
 						className='w-20 h-20 rounded-full mx-auto mt-[-40px]'
 					/>
