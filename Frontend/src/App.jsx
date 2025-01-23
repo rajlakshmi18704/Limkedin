@@ -20,6 +20,7 @@ function App() {
 		queryFn: async () => {
 			try {
 				const res = await axiosInstance.get("/auth/me");
+				
 				return res.data;
 			} catch (err) {
 				if (err.response && err.response.status === 401) {
@@ -38,7 +39,7 @@ function App() {
      <Layout>
 <Routes>
 <Route path='/' element={authUser ? <HomePage /> : <Navigate to={"/login"} />} />
-  <Route path="/" element={authUser?<HomePage/>:<Navigate to={"/login"}/>}/>
+
   <Route path='/notifications' element={authUser ? <NotificationsPage /> : <Navigate to={"/login"} />} />
 				<Route path='/network' element={authUser ? <NetworkPage /> : <Navigate to={"/login"} />} />
 				<Route path='/post/:postId' element={authUser ? <PostPage /> : <Navigate to={"/login"} />} />

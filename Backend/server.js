@@ -9,7 +9,7 @@ import cookieParser from "cookie-parser"
 import notificationRoutes from "./Routes/notification.route.js"
 import connectionRoutes from "./Routes/connection.route.js"
 import postRoutes from "./Routes/post.route.js"
-import protectRoute from "./middleware/auth.middleware.js"
+
 dotenv.config()
 const app= express()
 app.use(express.json({ limit: "5mb" })); 
